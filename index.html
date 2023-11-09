@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <!-- <link rel="icon" type="image/svg+xml" href="/vite.svg" /> -->
+    <link rel = "stylesheet" href="src/style.css"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Litewrite</title>
+  </head>
+  <div id="snap-content" class="snap-content scrollbox">
+
+		<div id="remotestorage-connect"></div>
+		<div class="backdrop">
+			<div class="highlights"></div>
+		</div>
+    <textarea id="editor" class="editor"></textarea>
+
+    <div class="actions">
+      <span id="delete" class="delete hide"></span>
+      <div id="sharing" class="sharing hide">
+        <span class="share"></span>
+        <a class="link" target="litewrite-public"></a>
+        <span class="unshare"></span>
+      </div>
+    </div>
+
+		<div id="date" class="date"></div>
+	</div>
+
+  <aside>
+    <input type="search" id="search" class="search hide">
+    <div id="add" class="add">+</div>
+    <ul id="entries" class="entries scrollbox"></ul>
+
+    <footer>
+      <a href="http://github.com/litewrite/litewrite" target="_blank">open source</a>
+    </footer>
+  </aside>
+
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>
