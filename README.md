@@ -2,7 +2,9 @@
 
 LiteWriteNeo is a distraction-free writing app designed for simplicity and efficiency. It allows you to focus on your thoughts without any unnecessary distractions. LiteWriteNeo is aimed to be as a modernized version of the original [LiteWrite](https://github.com/litewrite/litewrite) project, built using vanilla JavaScript with TypeScript for enhanced performance and maintainability.
 
-**Please note that LiteWriteNeo is currently a work in progress. It is actively being developed and may not yet be feature-complete or fully stable.**
+## Why LiteWriteNeo?
+
+While this app could have been easily written using a frontend framework like React, which I'm most familiar with, I chose to rewrite it in pure JavaScript with TypeScript for type safety. My intention for this approach is to enhance my understanding of basic fundamentals. Having relied on frameworks for the past two years, I felt the need to strengthen my foundational knowledge and overcome stagnation in my growth. LiteWriteNeo follows a pattern similar to open-source projects like [TodoMVC](https://github.com/tastejs/todomvc) and the modern TodoMVC implementation by Marc Grabanski available at [modern-todomvc-vanillajs](https://github.com/1Marc/modern-todomvc-vanillajs).
 
 ## Features
 
