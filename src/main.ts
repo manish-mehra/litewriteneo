@@ -9,7 +9,7 @@ interface DOMElements {
 class NoteComponent{
   parent: HTMLElement
 	$: DOMElements
-	filter: string
+  currentNoteId: string
 
   constructor(el: HTMLElement){
     this.parent = el
@@ -21,82 +21,59 @@ class NoteComponent{
       date: el.querySelector("#date") as HTMLElement,
       add: el.querySelector("#add") as HTMLElement,
     }
-    this.filter = ""
-
+    this.currentNoteId = `/documents/notes/${window.location.hash.slice(1).toString()}`
     this.setupUI()
   }
 
-  async setupUI(): Promise<void>{
+  setupUI(): void{
     
     this.render()
 
     this.$.add.addEventListener("click", async () => {
-      try {
-        const id = Math.floor(Math.random() * 10000000000)
-        const note: Note = { 
-          common: {},
-          local: {
-            body: {title: "Write...", content: "", lastEdited: ""},
-            contentType: "application/json; charset=utf-8",
-          },
-          path: `/documents/notes/${id}` 
-        }
-
-        await DB.notes.add(note).then((id) => {
-          window.location.hash = id.toString().split("/").pop() || ""
-          this.render()
-        })
-
-      } catch (error) {
-        console.error("Error adding new note:", error)
-        // Handle the error or show a user-friendly message
-      }
+      DB.addNew()
+      .then((noteId) => {
+        window.location.hash = noteId.toString().split("/").pop() || ""
+        this.render()
+      })
+      .catch((error) => {
+        console.error(error)
+      })
     })
 
     this.$.editor.addEventListener("input", async (e: Event) => {
-      const id = window.location.hash.slice(1)
-      const note = await DB.notes.get(`/documents/notes/${id.toString()}`)
-      
-      if(note){
-        note.local.body.content = (e.target as HTMLTextAreaElement).value
-        note.local.body.lastEdited = new Date().toISOString()
-        note.local.body.title = (e.target as HTMLTextAreaElement).value.substring(0, 20)
-        await DB.notes.put(note)
-        this.setSidebarNotes()
-      }
+
+      if(!this.currentNoteId) return
+      DB.save(this.currentNoteId, (e.target as HTMLTextAreaElement).value)
+      .then((status) => {
+        console.log('saved', status)
+        DB.getAllNotes().then((notes) => this.setSidebarNotes(notes))
+      })
+
     })
 
     window.addEventListener("hashchange", () => {
+      this.currentNoteId = `/documents/notes/${window.location.hash.slice(1).toString()}`
       this.render()    
     })
   }
 
-  async loadCurrentNote(){
-    const id = window.location.hash.slice(1)
-    const note = await DB.notes.get(`/documents/notes/${id.toString()}`)
-    if(note){
-      this.setCurrentNote(note)
-    }
-  }
-
-  async setSidebarNotes(){
-    const notes = await DB.notes.toArray()
+  setSidebarNotes(notes: Note[]){
     this.$.entries.innerHTML = ""
-    notes.forEach((note) => {
+    notes.forEach((note:Note) => {
       const entry = document.createElement("li").appendChild(document.createElement("a"))
       entry.href = "#" + note.path.split("/").pop()
-      entry.innerText = note.local.body.title
+      entry.innerText = note.title
       this.$.entries.appendChild(entry)
     })
   }
 
   setCurrentNote(note: Note){
-    (this.$.editor as HTMLTextAreaElement).value = note.local.body.content
+    (this.$.editor as HTMLTextAreaElement).value = note.content
   }
 
   render(){
-    this.setSidebarNotes()
-    this.loadCurrentNote()
+    DB.getAllNotes().then((notes) => this.setSidebarNotes(notes))
+    DB.getNote(this.currentNoteId).then((note) => note && this.setCurrentNote(note))
   }
 
 }
