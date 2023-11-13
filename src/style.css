@@ -3,8 +3,28 @@ html, body {
   padding: 0;
   overflow: hidden;
 	color: #000;
-	/* background: #fcfcfc; */
+	background: #fcfcfc url(../img/noise.png) repeat;
 	font:16px FreeSans, Helvetica, sans-serif;
+}
+
+
+@font-face {
+  font-family: 'Alegreya';
+  font-weight: normal;
+  src: url(Alegreya-Regular.ttf);
+}
+
+@font-face {
+  font-family: 'Alegreya';
+  font-weight: bold;
+  src: url(Alegreya-Bold.ttf);
+}
+
+/* for cyrillic text */
+@font-face {
+  font-family: 'Gregor';
+  font-weight: normal;
+  src: url(Gregor-Regular.otf);
 }
 
 .scrollbox {
@@ -71,13 +91,12 @@ aside > .scrollbox{
 }
 
 aside {
-  border: 1px solid gray;
   position: fixed;
   width: 16%;
   min-width: 135px;
   height: 100%;
   padding-right: 5px; /* If the sidebar has a scrollbar, there should be some space */
-  /* opacity: 0; */
+  opacity: 0;
   overflow: auto;
   -moz-user-select: none;
   -webkit-user-select: none;
@@ -313,7 +332,6 @@ footer a {
 	}
 
   .snap-content {
-    border: 1px solid gray;
     position: absolute;
     top: 0;
     right: 0;
@@ -321,6 +339,7 @@ footer a {
     left: 0;
     z-index: 2;
     overflow: auto;
+    background: #fcfcfc url(../img/noise.png) repeat;
     -webkit-overflow-scrolling: touch;
             transform: translate3d(0, 0, 0);
     -webkit-transform: translate3d(0, 0, 0);
@@ -357,7 +376,6 @@ footer a {
 
 	.add {
     padding:4px .5em;
-    cursor: pointer;
   }
 
 	.entries {

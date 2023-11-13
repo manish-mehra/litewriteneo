@@ -3,7 +3,7 @@ import Dexie, { IndexableType, Table } from 'dexie'
 export interface Note {
   title: string
   content: string
-  lastEdited: string
+  lastEdited: Date
   path: string
 }
 
@@ -24,17 +24,19 @@ export class Store extends Dexie {
     const note: Note = { 
       title: "Write...", 
       content: "", 
-      lastEdited: "",
+      lastEdited: new Date(),
       path: `/documents/notes/${newId}` 
     }
     return await this.notes.add(note)
   }
 
-  async save(id:string, content:string): Promise<Number> {
-    const title = content.length > 0 ?
-                  content.match(/[^\s].{0,40}/)
-                  : 'Write...'
-    return await this.notes.update(id, {content, title})
+  async save(note: Note): Promise<Number> {
+    const newNote = {
+      ...note,
+      content: note.content,
+      lastEdited: new Date(),
+    }
+    return await this.notes.update(note.path, newNote)
   }
 
   async getNote(id:string){
@@ -50,8 +52,11 @@ export class Store extends Dexie {
       lastEdited: note.lastEdited,
       path: note.path
     }
-   })
-   
+   })   
+  }
+
+  async deleteNote(id:string): Promise<void> {
+    return await this.notes.delete(id)
   }
 
 }

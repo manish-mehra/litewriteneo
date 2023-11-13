@@ -1,13 +1,27 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <!-- <link rel="icon" type="image/svg+xml" href="/vite.svg" /> -->
-    <link rel = "stylesheet" href="src/style.css"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Litewrite</title>
-  </head>
-  <div id="snap-content" class="snap-content scrollbox">
+<!DOCTYPE html>
+<html manifest="cache.manifest">
+
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width,minimum-scale=1.0,maximum-scale=1.0">
+
+	<title>LitewriteNeo</title>
+	<meta name="description" content="distraction-free writing">
+
+	<meta name="mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-capable" content="yes">
+
+	<link rel="stylesheet" href="src/style.css">
+	<link rel="shortcut icon" href="img/litewrite.png">
+	<link rel="apple-touch-icon-precomposed" href="img/litewrite-touch.png">
+	<link rel="icon" sizes="192x192" href="img/litewrite-touch.png">
+</head>
+
+<body>
+	<div id="snap-content" class="snap-content scrollbox">
+		<svg id="menu-button" class="menu-button" height="15" width="15">
+			<path d="m0 0v3h15v-3h-15zm0 6v3h15v-3h-15zm0 6v3h15v-3h-15z"/>
+		</svg>
 
 		<div id="remotestorage-connect"></div>
 		<div class="backdrop">
@@ -33,10 +47,11 @@
     <ul id="entries" class="entries scrollbox"></ul>
 
     <footer>
-      <a href="http://github.com/litewrite/litewrite" target="_blank">open source</a>
+      <a href="https://github.com/manish-mehra/litewriteneo" target="_blank">open source</a>
     </footer>
   </aside>
 
-  <script type="module" src="/src/main.ts"></script>
+	<script type="module" src="/src/main.ts"></script>
 </body>
+
 </html>
