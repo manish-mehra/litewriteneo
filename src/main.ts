@@ -1,16 +1,17 @@
-import {Store, Note} from "./store/store"
+import {Store, Doc} from "./store/store"
 import { formatNoteTitle } from "./utils"
 
-const DB = new Store("notes")
+const DB = new Store("docs")
 
 interface DOMElements {
 	[index: string]: HTMLElement | HTMLInputElement;
 }
 
-class NoteComponent{
+class DocComponent{
   parent: HTMLElement
 	$: DOMElements
-  currentNote: Note
+  currentDoc: Doc
+  docs: Doc[]
 
   constructor(el: HTMLElement){
     this.parent = el
@@ -22,13 +23,13 @@ class NoteComponent{
       date: el.querySelector("#date") as HTMLElement,
       add: el.querySelector("#add") as HTMLElement,
     }
-    this.currentNote = {
+    this.currentDoc = {
       title: "",
       content: "",
       lastEdited: new Date(),
-      path: `/documents/notes/${window.location.hash.slice(1).toString()}` || ""
+      path: ""
     }
-
+    this.docs = []
     this.setupUI()
   }
 
@@ -37,57 +38,69 @@ class NoteComponent{
     this.render()
 
     this.$.add.addEventListener("click", async () => {
-      DB.addNew()
-      .then((noteId) => {
-        window.location.hash = noteId.toString().split("/").pop() || ""
-        this.currentNote = {...this.currentNote, title: "Write...", path: noteId.toString()}
-        this.render()
-      })
-      .catch((error) => {
-        console.error(error)
-      })
+      this.newDoc()
     })
 
     this.$.editor.addEventListener("input", async (e: Event) => {
-      if(!this.currentNote.path) return
-      this.currentNote = {
-        ...this.currentNote,
+      if(!this.currentDoc.path) return
+      this.currentDoc = {
+        ...this.currentDoc,
         content: (e.target as HTMLTextAreaElement).value,
         title: formatNoteTitle((e.target as HTMLTextAreaElement).value),
         lastEdited: new Date()
       }
+      this.showDelete(this.currentDoc.content)
 
-      DB.save(this.currentNote)
-      .then((status) => {
-        this.setModified(this.currentNote.lastEdited)
-        this.showDelete(this.currentNote.content)
-        DB.getAllNotes().then((notes) => this.setSidebarNotes(notes))
+      DB.save(this.currentDoc)
+      .then(() => {
+        this.setModified(this.currentDoc.lastEdited)
+        DB.getDocs().then((docs) => this.setSidebarDocs(docs))
       })
     })
 
     this.$.delete.addEventListener("click", async () => {
-      if(!this.currentNote.path) return
-      DB.deleteNote(this.currentNote.path)
+      if(!this.currentDoc.path) return
+      DB.deleteDoc(this.currentDoc.path)
       .then(() => {
-        window.location.hash = ""
-        this.currentNote = {
-          title: "",
-          content: "",
-          lastEdited: new Date(),
-          path: ""
-        }
+        this.redirectToOtherDocOnDelete()
         this.render()
       })
     })
 
     window.addEventListener("hashchange", () => {
-      this.currentNote = {
+      this.currentDoc = {
         title: "",
         content: "",
         lastEdited: new Date(),
-        path: `/documents/notes/${window.location.hash.slice(1).toString()}`
+        path: window.location.hash.slice(1).toString()
       }
       this.render()    
+    })
+  }
+
+  redirectToOtherDocOnDelete(){
+    DB.getDocs()
+    .then((docs) => {
+      if(docs.length === 0){
+        this.newDoc()
+        return
+      }
+      if(docs.length > 0){
+        window.location.hash = docs[0].path.toString()
+        return
+      }
+    })
+  }
+
+  newDoc(){
+    DB.addNew()
+    .then((docId) => {
+      window.location.hash = docId.toString() || ""
+      this.currentDoc = {...this.currentDoc, title: "Write...", path: docId.toString()}
+      this.render()
+    })
+    .catch((error) => {
+      console.error(error)
     })
   }
 
@@ -96,21 +109,21 @@ class NoteComponent{
     this.$.date.innerHTML = `Last modified: ${date.toLocaleTimeString()}`
   }
 
-  setSidebarNotes(notes: Note[]){
+  setSidebarDocs(docs: Doc[]){
     this.$.entries.innerHTML = ""
-    notes.forEach((note:Note) => {
+    docs.forEach((doc:Doc) => {
       const entry = document.createElement("li").appendChild(document.createElement("a"))
-      entry.href = "#" + note.path.split("/").pop()
-      entry.innerText = note.title
+      entry.href = "#" + doc.path.split("/").pop()
+      entry.innerText = doc.title
       this.$.entries.appendChild(entry)
     })
   }
 
-  setCurrentNote(note: Note){
-    (this.$.editor as HTMLTextAreaElement).value = note.content
-    this.currentNote = note
-    this.setModified(new Date(note.lastEdited))
-    this.showDelete(note.content)
+  setCurrentDoc(doc: Doc){
+    (this.$.editor as HTMLTextAreaElement).value = doc.content
+    this.currentDoc = doc
+    this.setModified(new Date(doc.lastEdited))
+    this.showDelete(doc.content)
   }
 
   showDelete(content:string){
@@ -122,10 +135,10 @@ class NoteComponent{
   }
 
   render(){
-    DB.getAllNotes().then((notes) => this.setSidebarNotes(notes))
-    DB.getNote(this.currentNote.path).then((note) => note && this.setCurrentNote(note))
+    DB.getDocs().then((docs) => this.setSidebarDocs(docs))
+    DB.getDoc(this.currentDoc.path).then((doc) => doc && this.setCurrentDoc(doc))
   }
 
 }
 
-new NoteComponent(document.body)
+new DocComponent(document.body)

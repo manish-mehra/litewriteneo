@@ -1,6 +1,6 @@
 import Dexie, { IndexableType, Table } from 'dexie'
 
-export interface Note {
+export interface Doc {
   title: string
   content: string
   lastEdited: Date
@@ -9,54 +9,54 @@ export interface Note {
 
 export class Store extends Dexie {
 
-  notes!: Table<Note>
+  docs!: Table<Doc>
 
   constructor(dbName:string) {
     super(dbName)
     this.version(1).stores({
-      notes: 'path'
+      docs: 'path'
     })
-    this.notes = this.table('notes')
+    this.docs = this.table('docs')
   }
 
   async addNew(): Promise<IndexableType> {
     const newId = Math.floor(Math.random() * 10000000000)
-    const note: Note = { 
+    const doc: Doc = { 
       title: "Write...", 
       content: "", 
       lastEdited: new Date(),
-      path: `/documents/notes/${newId}` 
+      path: newId.toString()
     }
-    return await this.notes.add(note)
+    return await this.docs.add(doc)
   }
 
-  async save(note: Note): Promise<Number> {
-    const newNote = {
-      ...note,
-      content: note.content,
+  async save(doc: Doc): Promise<Number> {
+    const newDoc = {
+      ...doc,
+      content: doc.content,
       lastEdited: new Date(),
     }
-    return await this.notes.update(note.path, newNote)
+    return await this.docs.update(doc.path, newDoc)
   }
 
-  async getNote(id:string){
-    return await this.notes.get(id).then((note) => note && note)
+  async getDoc(id:string){
+    return await this.docs.get(id).then((doc) => doc && doc)
   }
   
-  async getAllNotes(): Promise<Note[]>{
-   const notes = await this.notes.toArray()
-   return notes.map((note) => {
+  async getDocs(): Promise<Doc[]>{
+   const docs = await this.docs.toArray()
+   return docs.map((doc) => {
     return {
-      title: note.title,
-      content: note.content,
-      lastEdited: note.lastEdited,
-      path: note.path
+      title: doc.title,
+      content: doc.content,
+      lastEdited: doc.lastEdited,
+      path: doc.path
     }
    })   
   }
 
-  async deleteNote(id:string): Promise<void> {
-    return await this.notes.delete(id)
+  async deleteDoc(id:string): Promise<void> {
+    return await this.docs.delete(id)
   }
 
 }
