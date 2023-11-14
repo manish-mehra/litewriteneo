@@ -1,5 +1,5 @@
 import {Store, Doc} from "./store/store"
-import { formatNoteTitle } from "./utils"
+import { formatDocTitle } from "./utils"
 
 const DB = new Store("docs")
 
@@ -46,7 +46,7 @@ class DocComponent{
       this.currentDoc = {
         ...this.currentDoc,
         content: (e.target as HTMLTextAreaElement).value,
-        title: formatNoteTitle((e.target as HTMLTextAreaElement).value),
+        title: formatDocTitle((e.target as HTMLTextAreaElement).value),
         lastEdited: new Date()
       }
       this.showDelete(this.currentDoc.content)
