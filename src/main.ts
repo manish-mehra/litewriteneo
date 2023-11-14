@@ -11,7 +11,6 @@ class DocComponent{
   parent: HTMLElement
 	$: DOMElements
   currentDoc: Doc
-  docs: Doc[]
 
   constructor(el: HTMLElement){
     this.parent = el
@@ -27,9 +26,8 @@ class DocComponent{
       title: "",
       content: "",
       lastEdited: new Date(),
-      path: ""
+      path: window.location.hash.slice(1).toString()
     }
-    this.docs = []
     this.setupUI()
   }
 
@@ -60,6 +58,9 @@ class DocComponent{
 
     this.$.delete.addEventListener("click", async () => {
       if(!this.currentDoc.path) return
+      let confirmDelete = window.confirm("Are you sure you want to delete this document?")
+      if(!confirmDelete) return
+      
       DB.deleteDoc(this.currentDoc.path)
       .then(() => {
         this.redirectToOtherDocOnDelete()
