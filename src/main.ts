@@ -107,15 +107,18 @@ class DocComponent{
 
   setModified(date: Date){
     this.$.date.style.display = "block"
-    this.$.date.innerHTML = `Last modified: ${date.toLocaleTimeString()}`
+    this.$.date.innerText = `Last modified: ${date.toLocaleTimeString()}`
   }
 
   setSidebarDocs(docs: Doc[]){
     this.$.entries.innerHTML = ""
     docs.forEach((doc:Doc) => {
-      const entry = document.createElement("li").appendChild(document.createElement("a"))
-      entry.href = "#" + doc.path.split("/").pop()
-      entry.innerText = doc.title
+      const entry = document.createElement("li")
+      const anchor = document.createElement("a")
+      
+      anchor.href = "#" + doc.path.split("/").pop()
+      anchor.innerText = doc.title
+      entry.appendChild(anchor)
       this.$.entries.appendChild(entry)
     })
   }
