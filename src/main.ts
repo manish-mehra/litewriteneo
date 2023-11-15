@@ -47,12 +47,13 @@ class DocComponent{
         title: formatDocTitle((e.target as HTMLTextAreaElement).value),
         lastEdited: new Date()
       }
-      this.showDelete(this.currentDoc.content)
-
+      
+      this.showDelete(this.currentDoc.content);
+      (this.$.entries.querySelector(`[data-id="${this.currentDoc.path}"] a`) as HTMLAnchorElement).innerText = this.currentDoc.title
+      
       DB.save(this.currentDoc)
       .then(() => {
         this.setModified(this.currentDoc.lastEdited)
-        DB.getDocs().then((docs) => this.setSidebarDocs(docs))
       })
     })
 
@@ -114,6 +115,7 @@ class DocComponent{
     this.$.entries.innerHTML = ""
     docs.forEach((doc:Doc) => {
       const entry = document.createElement("li")
+      entry.dataset.id = doc.path
       const anchor = document.createElement("a")
       
       anchor.href = "#" + doc.path.split("/").pop()
