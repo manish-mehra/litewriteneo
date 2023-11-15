@@ -47,10 +47,9 @@ class DocComponent{
         title: formatDocTitle((e.target as HTMLTextAreaElement).value),
         lastEdited: new Date()
       }
-      
+
       this.showDelete(this.currentDoc.content);
-      (this.$.entries.querySelector(`[data-id="${this.currentDoc.path}"] a`) as HTMLAnchorElement).innerText = this.currentDoc.title
-      
+      (this.$.entries.querySelector(`[data-id="${this.currentDoc.path}"] a`) as HTMLAnchorElement).innerText = this.currentDoc.title;
       DB.save(this.currentDoc)
       .then(() => {
         this.setModified(this.currentDoc.lastEdited)
@@ -126,10 +125,15 @@ class DocComponent{
   }
 
   setCurrentDoc(doc: Doc){
-    (this.$.editor as HTMLTextAreaElement).value = doc.content
-    this.currentDoc = doc
-    this.setModified(new Date(doc.lastEdited))
-    this.showDelete(doc.content)
+    if(doc){
+      (this.$.editor as HTMLTextAreaElement).value = doc.content
+      this.currentDoc = doc
+      this.setModified(new Date(doc.lastEdited))
+      this.showDelete(doc.content)
+      this.$.editor.focus()
+      const selectedElement = this.$.entries.querySelector(`[data-id="${parseInt(this.currentDoc.path)}"] a`) as HTMLAnchorElement
+      selectedElement && selectedElement.classList.add("selected")
+    }
   }
 
   showDelete(content:string){
@@ -141,8 +145,12 @@ class DocComponent{
   }
 
   render(){
-    DB.getDocs().then((docs) => this.setSidebarDocs(docs))
-    DB.getDoc(this.currentDoc.path).then((doc) => doc && this.setCurrentDoc(doc))
+    DB.getDocs()
+    .then((docs) => this.setSidebarDocs(docs))
+    .then(() => 
+      DB.getDoc(this.currentDoc.path)
+      .then((doc) => doc && this.setCurrentDoc(doc))
+    )
   }
 
 }
