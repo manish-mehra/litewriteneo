@@ -1,7 +1,7 @@
 import {Store, Doc} from "./store/store"
-import { formatDocTitle } from "./utils"
+import { formatDocTitle, applyHighlights } from "./utils"
 
-const DB = new Store("docs")
+const DB = new Store()
 
 interface DOMElements {
 	[index: string]: HTMLElement | HTMLInputElement;
@@ -11,6 +11,7 @@ class DocComponent{
   parent: HTMLElement
 	$: DOMElements
   currentDoc: Doc
+  searchQuery: string
 
   constructor(el: HTMLElement){
     this.parent = el
@@ -21,6 +22,7 @@ class DocComponent{
       delete: el.querySelector("#delete") as HTMLElement,
       date: el.querySelector("#date") as HTMLElement,
       add: el.querySelector("#add") as HTMLElement,
+      search: el.querySelector("#search") as HTMLInputElement
     }
     this.currentDoc = {
       title: "",
@@ -28,12 +30,13 @@ class DocComponent{
       lastEdited: new Date(),
       path: window.location.hash.slice(1).toString()
     }
+    this.searchQuery = ""
     this.setupUI()
   }
 
   setupUI(): void{
     
-    this.render()
+    this.loadDocs()
 
     this.$.add.addEventListener("click", async () => {
       this.newDoc()
@@ -64,19 +67,52 @@ class DocComponent{
       DB.deleteDoc(this.currentDoc.path)
       .then(() => {
         this.redirectToOtherDocOnDelete()
-        this.render()
+      })
+    })
+
+    this.$.search.addEventListener("input", (e: Event) => {
+  
+      DB.getDocs()
+      .then((docs) => {
+        const filteredDocs = docs.filter((doc) => doc.content.includes(this.searchQuery))
+
+        this.setSidebarDocs(filteredDocs)
+        // window.location.hash = filteredDocs[0].path.toString() // we don't want that
+        
+        // highlight search query
+        
+        this.$.search.focus()
+        this.searchQuery = (e.target as HTMLInputElement).value
+      
+        const highlightedContent = applyHighlights(this.currentDoc.content, this.searchQuery);
+        if(document.querySelector(".highlights")){
+          (document.querySelector(".highlights") as HTMLDivElement).innerHTML = highlightedContent; 
+        } 
+
       })
     })
 
     window.addEventListener("hashchange", () => {
+      this.$.editor.scrollTop = 0
       this.currentDoc = {
         title: "",
         content: "",
         lastEdited: new Date(),
         path: window.location.hash.slice(1).toString()
       }
-      this.render()    
+      DB.getDoc(this.currentDoc.path).then((doc) => doc && this.setCurrentDoc(doc))
     })
+
+
+    DB.event.addEventListener("docs-loaded", (details:any) => {
+      
+      // show search
+      if(details && details.detail.length > 0){
+        this.$.search.setAttribute("placeholder", "Search")
+        this.$.search.classList.remove("hide")
+      }
+    })
+
   }
 
   redirectToOtherDocOnDelete(){
@@ -87,6 +123,9 @@ class DocComponent{
         return
       }
       if(docs.length > 0){
+        this.setSidebarDocs(docs)
+        DB.getDoc(docs[0].path.toString()).then((doc) => doc && this.setCurrentDoc(doc))
+  
         window.location.hash = docs[0].path.toString()
         return
       }
@@ -98,7 +137,10 @@ class DocComponent{
     .then((docId) => {
       window.location.hash = docId.toString() || ""
       this.currentDoc = {...this.currentDoc, title: "Write...", path: docId.toString()}
-      this.render()
+
+      DB.getDocs()
+      .then((docs) => this.setSidebarDocs(docs))
+      .then(() => this.setCurrentDoc(this.currentDoc))
     })
     .catch((error) => {
       console.error(error)
@@ -131,7 +173,12 @@ class DocComponent{
       this.setModified(new Date(doc.lastEdited))
       this.showDelete(doc.content)
       this.$.editor.focus()
-      const selectedElement = this.$.entries.querySelector(`[data-id="${parseInt(this.currentDoc.path)}"] a`) as HTMLAnchorElement
+      // remove selected class from all entries
+      this.$.entries.querySelectorAll("li").forEach((entry) => {
+        entry.classList.remove("selected")
+      })
+      // add selected class to current entry
+      const selectedElement = this.$.entries.querySelector(`[data-id="${parseInt(this.currentDoc.path)}"]`) as HTMLAnchorElement
       selectedElement && selectedElement.classList.add("selected")
     }
   }
@@ -144,7 +191,7 @@ class DocComponent{
     this.$.delete.classList.add("hide")
   }
 
-  render(){
+  loadDocs(){
     DB.getDocs()
     .then((docs) => this.setSidebarDocs(docs))
     .then(() => 
