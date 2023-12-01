@@ -437,6 +437,7 @@ footer a {
 
 .editor {
   z-index: 2;
+  overflow: hidden;
 }
 
 .backdrop {

@@ -37,12 +37,15 @@ class DocComponent{
   setupUI(): void{
     
     this.loadDocs()
+    console.log('current doc', this.currentDoc)
+    this.resizeEditor()
 
     this.$.add.addEventListener("click", async () => {
       this.newDoc()
     })
 
     this.$.editor.addEventListener("input", async (e: Event) => {
+
       if(!this.currentDoc.path) return
       this.currentDoc = {
         ...this.currentDoc,
@@ -71,36 +74,46 @@ class DocComponent{
     })
 
     this.$.search.addEventListener("input", (e: Event) => {
+
+      this.searchQuery = (e.target as HTMLInputElement).value
+
+      this.highlightSearchedText()
   
-      DB.getDocs()
-      .then((docs) => {
-        const filteredDocs = docs.filter((doc) => doc.content.includes(this.searchQuery))
+      // DB.getDocs()
+      // .then((docs) => {
+      //   const filteredDocs = docs.filter((doc) => doc.content.includes(this.searchQuery))
 
-        this.setSidebarDocs(filteredDocs)
-        // window.location.hash = filteredDocs[0].path.toString() // we don't want that
-        
-        // highlight search query
-        
-        this.$.search.focus()
-        this.searchQuery = (e.target as HTMLInputElement).value
+      //   this.setSidebarDocs(filteredDocs)
+   
+      //   this.$.search.focus()
+      //   this.searchQuery = (e.target as HTMLInputElement).value
       
-        const highlightedContent = applyHighlights(this.currentDoc.content, this.searchQuery);
-        if(document.querySelector(".highlights")){
-          (document.querySelector(".highlights") as HTMLDivElement).innerHTML = highlightedContent; 
-        } 
+      //   const highlightedContent = applyHighlights(this.currentDoc.content, this.searchQuery);
+      //   if(document.querySelector(".highlights")){
+      //     (document.querySelector(".highlights") as HTMLDivElement).innerHTML = highlightedContent; 
+      //   } 
 
-      })
+      // })
     })
 
     window.addEventListener("hashchange", () => {
-      this.$.editor.scrollTop = 0
+
       this.currentDoc = {
         title: "",
         content: "",
         lastEdited: new Date(),
         path: window.location.hash.slice(1).toString()
       }
-      DB.getDoc(this.currentDoc.path).then((doc) => doc && this.setCurrentDoc(doc))
+
+      DB.getDoc(this.currentDoc.path).then((doc) =>{
+        doc && this.setCurrentDoc(doc)
+        this.resizeEditor()
+        this.$.editor.scrollTop = 0
+        if(this.searchQuery.length > 0){
+          this.highlightSearchedText()
+        }
+
+      })
     })
 
 
@@ -113,6 +126,29 @@ class DocComponent{
       }
     })
 
+  }
+
+  highlightSearchedText(){
+
+    DB.getDocs()
+    .then((docs) => {
+      const filteredDocs = docs.filter((doc) => doc.content.includes(this.searchQuery))
+
+      this.setSidebarDocs(filteredDocs)
+ 
+      this.$.search.focus()
+    
+      const highlightedContent = applyHighlights(this.currentDoc.content, this.searchQuery);
+      if(document.querySelector(".highlights")){
+        (document.querySelector(".highlights") as HTMLDivElement).innerHTML = highlightedContent; 
+      } 
+
+    })
+  }
+
+  resizeEditor(){
+    this.$.editor.style.height = "auto"
+    this.$.editor.scrollHeight && (this.$.editor.style.height = this.$.editor.scrollHeight + "px")
   }
 
   redirectToOtherDocOnDelete(){
@@ -196,7 +232,10 @@ class DocComponent{
     .then((docs) => this.setSidebarDocs(docs))
     .then(() => 
       DB.getDoc(this.currentDoc.path)
-      .then((doc) => doc && this.setCurrentDoc(doc))
+      .then((doc) => {
+        doc && this.setCurrentDoc(doc)
+        this.resizeEditor()
+      })
     )
   }
 
