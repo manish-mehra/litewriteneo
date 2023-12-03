@@ -22,7 +22,8 @@ class DocComponent{
       delete: el.querySelector("#delete") as HTMLElement,
       date: el.querySelector("#date") as HTMLElement,
       add: el.querySelector("#add") as HTMLElement,
-      search: el.querySelector("#search") as HTMLInputElement
+      search: el.querySelector("#search") as HTMLInputElement,
+      highlight: el.querySelector(".highlights") as HTMLElement
     }
     this.currentDoc = {
       title: "",
@@ -37,7 +38,6 @@ class DocComponent{
   setupUI(): void{
     
     this.loadDocs()
-    console.log('current doc', this.currentDoc)
     this.resizeEditor()
 
     this.$.add.addEventListener("click", async () => {
@@ -53,6 +53,8 @@ class DocComponent{
         title: formatDocTitle((e.target as HTMLTextAreaElement).value),
         lastEdited: new Date()
       }
+      
+      this.resizeEditor()
 
       this.showDelete(this.currentDoc.content);
       (this.$.entries.querySelector(`[data-id="${this.currentDoc.path}"] a`) as HTMLAnchorElement).innerText = this.currentDoc.title;
@@ -76,24 +78,11 @@ class DocComponent{
     this.$.search.addEventListener("input", (e: Event) => {
 
       this.searchQuery = (e.target as HTMLInputElement).value
-
-      this.highlightSearchedText()
+      DB.getDocs()
+      .then((docs:Doc[]) => {
+        this.highlightSearchedText(docs)
+      })
   
-      // DB.getDocs()
-      // .then((docs) => {
-      //   const filteredDocs = docs.filter((doc) => doc.content.includes(this.searchQuery))
-
-      //   this.setSidebarDocs(filteredDocs)
-   
-      //   this.$.search.focus()
-      //   this.searchQuery = (e.target as HTMLInputElement).value
-      
-      //   const highlightedContent = applyHighlights(this.currentDoc.content, this.searchQuery);
-      //   if(document.querySelector(".highlights")){
-      //     (document.querySelector(".highlights") as HTMLDivElement).innerHTML = highlightedContent; 
-      //   } 
-
-      // })
     })
 
     window.addEventListener("hashchange", () => {
@@ -104,16 +93,25 @@ class DocComponent{
         lastEdited: new Date(),
         path: window.location.hash.slice(1).toString()
       }
+      
 
       DB.getDoc(this.currentDoc.path).then((doc) =>{
         doc && this.setCurrentDoc(doc)
-        this.resizeEditor()
-        this.$.editor.scrollTop = 0
-        if(this.searchQuery.length > 0){
-          this.highlightSearchedText()
-        }
-
       })
+      
+      if(this.searchQuery.length > 0){
+        DB.getDocs()
+        .then((docs: Doc[]) => {
+          this.highlightSearchedText(docs)
+        })
+      }
+      
+      this.resizeEditor()
+      if(document.querySelector(".highlights")){
+        (document.querySelector(".highlights") as HTMLDivElement).innerHTML = ""
+        this.resizeHighlight()
+      } 
+
     })
 
 
@@ -128,27 +126,38 @@ class DocComponent{
 
   }
 
-  highlightSearchedText(){
-
-    DB.getDocs()
-    .then((docs) => {
+  highlightSearchedText(docs: Doc[]){
+    
       const filteredDocs = docs.filter((doc) => doc.content.includes(this.searchQuery))
 
-      this.setSidebarDocs(filteredDocs)
+      if(filteredDocs.length > 0){
+        this.setSidebarDocs(filteredDocs)
+
+        let currentDocPath = window.location.hash.slice(1).toString()
+        if(!filteredDocs.find((doc) => doc.path === currentDocPath)){
+          window.location.hash = filteredDocs[0].path
+        }
+
+        this.highlightSidebarDoc(currentDocPath)
+      }
  
       this.$.search.focus()
     
-      const highlightedContent = applyHighlights(this.currentDoc.content, this.searchQuery);
+      const highlightedContent = applyHighlights(this.currentDoc.content, this.searchQuery)
       if(document.querySelector(".highlights")){
-        (document.querySelector(".highlights") as HTMLDivElement).innerHTML = highlightedContent; 
+        (document.querySelector(".highlights") as HTMLDivElement).innerHTML = highlightedContent 
+        this.resizeHighlight()
       } 
-
-    })
   }
 
   resizeEditor(){
     this.$.editor.style.height = "auto"
     this.$.editor.scrollHeight && (this.$.editor.style.height = this.$.editor.scrollHeight + "px")
+  }
+
+  resizeHighlight(){
+    this.$.highlight.style.height = "auto"
+    this.$.highlight.scrollHeight && (this.$.highlight.style.height = this.$.highlight.scrollHeight + "px")
   }
 
   redirectToOtherDocOnDelete(){
@@ -202,20 +211,28 @@ class DocComponent{
     })
   }
 
+  highlightSidebarDoc(id: string){
+    this.$.entries.querySelectorAll("li").forEach((entry) => {
+      entry.classList.remove("selected")
+    })
+    this.$.entries.querySelector(`[data-id="${id}"]`)?.classList.add("selected")
+  }
+
   setCurrentDoc(doc: Doc){
     if(doc){
+
+      if(window.location.hash.slice(1).toString() !== doc.path){
+        window.location.hash = doc.path
+      }
+      this.currentDoc = doc;
       (this.$.editor as HTMLTextAreaElement).value = doc.content
-      this.currentDoc = doc
+      this.resizeEditor()
       this.setModified(new Date(doc.lastEdited))
       this.showDelete(doc.content)
       this.$.editor.focus()
-      // remove selected class from all entries
-      this.$.entries.querySelectorAll("li").forEach((entry) => {
-        entry.classList.remove("selected")
-      })
-      // add selected class to current entry
-      const selectedElement = this.$.entries.querySelector(`[data-id="${parseInt(this.currentDoc.path)}"]`) as HTMLAnchorElement
-      selectedElement && selectedElement.classList.add("selected")
+
+      this.highlightSidebarDoc(doc.path)
+
     }
   }
 
