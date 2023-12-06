@@ -16,6 +16,7 @@ class DocComponent{
   constructor(el: HTMLElement){
     this.parent = el
     this.$ = {
+      body: el.querySelector("body") as HTMLElement,
       content: el.querySelector("#snap-content") as HTMLInputElement,
       editor: el.querySelector("#editor") as HTMLTextAreaElement,
       entries: el.querySelector("#entries") as HTMLElement,
@@ -23,7 +24,8 @@ class DocComponent{
       date: el.querySelector("#date") as HTMLElement,
       add: el.querySelector("#add") as HTMLElement,
       search: el.querySelector("#search") as HTMLInputElement,
-      highlight: el.querySelector(".highlights") as HTMLElement
+      highlight: el.querySelector(".highlights") as HTMLElement,
+      menuButton: el.querySelector("#menu-button") as HTMLElement,
     }
     this.currentDoc = {
       title: "",
@@ -85,6 +87,16 @@ class DocComponent{
   
     })
 
+    this.$.menuButton.addEventListener("click", (e) => {
+      this.toggleSidebar()
+      e.stopPropagation()
+    })
+
+    this.$.content.addEventListener("click", () => {
+      this.toggleSidebar()
+    })
+
+    
     window.addEventListener("hashchange", () => {
 
       this.currentDoc = {
@@ -93,7 +105,6 @@ class DocComponent{
         lastEdited: new Date(),
         path: window.location.hash.slice(1).toString()
       }
-      
 
       DB.getDoc(this.currentDoc.path).then((doc) =>{
         doc && this.setCurrentDoc(doc)
@@ -124,6 +135,14 @@ class DocComponent{
       }
     })
 
+  }
+
+  toggleSidebar(){
+   if(this.$.content.classList.contains("toggle-sidebar")){
+    this.$.content.classList.remove("toggle-sidebar")
+    return
+   }
+    this.$.content.classList.add("toggle-sidebar")
   }
 
   highlightSearchedText(docs: Doc[]){

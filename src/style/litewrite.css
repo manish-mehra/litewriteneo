@@ -114,6 +114,10 @@ aside {
   -ms-transition: opacity 0.4s;
 }
 
+.toggle-sidebar{
+  transform: translate3d(265px, 0px, 0px)!important;
+}
+
 aside:hover,
 aside:focus,
 .show-aside aside {
@@ -348,6 +352,7 @@ footer a {
          -o-transform: translate3d(0, 0, 0);
 	  -webkit-box-shadow: 0 0 20px -2px rgba(100,100,110,.3);
 	  box-shadow: 0 0 20px -2px rgba(100,100,110,.3);
+    transition: transform 0.3s ease-in-out; 
   }
 
   .editor, .backdrop {
