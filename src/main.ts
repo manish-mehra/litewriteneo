@@ -93,6 +93,7 @@ class DocComponent{
     })
 
     this.$.content.addEventListener("click", () => {
+      if(!(this.$.content.classList.contains("toggle-sidebar"))) return
       this.toggleSidebar()
     })
 
