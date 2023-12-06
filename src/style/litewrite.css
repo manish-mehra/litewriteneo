@@ -3,7 +3,7 @@ html, body {
   padding: 0;
   overflow: hidden;
 	color: #000;
-	background: #fcfcfc url(../img/noise.png) repeat;
+  background: #fff7e6;
 	font:16px FreeSans, Helvetica, sans-serif;
 }
 
@@ -91,6 +91,9 @@ aside > .scrollbox{
 }
 
 aside {
+  background: white;
+  border-top-right-radius: 2rem;
+  border-bottom-right-radius: 2rem;
   position: fixed;
   width: 16%;
   min-width: 135px;
@@ -176,39 +179,49 @@ aside a,
 .add {
 	position: relative;
 	color: #999;
-	padding: 18px 18px 4px 18px;
+	/* padding: 18px 18px 4px 18px; */
 	font-weight: bold;
+  border-radius: 2rem;
+  padding: 0.5rem 1rem;
+  margin: 0 1rem;
+  width: min-content;
 }
 
 .add:hover, .add:focus {
   color: #000;
+  background: #d1cdcd40;
 }
 
 .entries {
 	height: auto;
-  display: block;
 	margin: 0;
 	padding: 0;
 	padding-top: 7px;
 	-webkit-overflow-scrolling: touch; /* enable native smooth scrolling on iOS */
 	list-style: none;
+  display: flex;
+  flex-direction: column;
 }
 
+
 .entries a {
+  border-radius: 2rem;
+  padding: 0.5rem;
+  margin: 0 1rem;
 	text-overflow: ellipsis;
-  height: 1.35em;
-  padding: .5em 0 .5em 1.2em;
 	-webkit-tap-highlight-color: rgba(0,0,0,0); /* prevent grey flash when clicking */
 }
 
 .entries a:hover,
-.entries a:focus,
-.entries .selected {
+.entries a:focus {
 	color: #000;
+  background: #d1d1cd40;
 }
 
-.entries .selected {
+.entries .selected a {
 	font-weight: bold;
+  background: #fbf5a9;
+  /* background: #c4eed0; */
 }
 
 .entries li:last-child {
